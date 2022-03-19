@@ -1,0 +1,17 @@
+[package]
+name = "macroboard"
+description = "My macro keyboard software"
+version = "0.1.0"
+authors = ["Alex Martens <alex@thinglab.org>"]
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+bitflags = "1"
+ctrlc = "3"
+libc = "0.2"
+log = { version = "0.4", features = ["release_max_level_debug"] }
+serde = "1"
+serde_json = "1"
+systemd-journal-logger = "0.5"
