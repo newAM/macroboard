@@ -62,6 +62,8 @@ in
           Type = "idle";
           KillSignal = "SIGINT";
           ExecStart = "${pkgs.macroboard}/bin/macroboard ${configFile}";
+          Restart = "on-failure";
+          RestartSec = 10;
 
           # hardening
           SupplementaryGroups = [ "mbgroup" ];
