@@ -15,14 +15,14 @@
             pkgs = nixpkgs.legacyPackages.${system};
           in
           rec {
-            devShell = pkgs.mkShell {
-              inputsFrom = [ defaultPackage ];
+            devShells.default = pkgs.mkShell {
+              inputsFrom = [ packages.default ];
               shellHook = ''
                 export LIBEVDEV_LIB_DIR=${pkgs.libevdev}/lib
               '';
             };
 
-            defaultPackage = pkgs.callPackage ./package.nix { };
+            packages.default = pkgs.callPackage ./package.nix { };
 
             apps = {
               bindgen =
@@ -41,8 +41,8 @@
           }
         ))
       {
-        overlay = final: prev: {
-          macroboard = self.defaultPackage.${prev.system};
+        overlays.default = final: prev: {
+          macroboard = self.packages.${prev.system}.default;
         };
         nixosModule = import ./module.nix;
       };
