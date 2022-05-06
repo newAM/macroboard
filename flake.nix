@@ -44,6 +44,6 @@
         overlays.default = final: prev: {
           macroboard = self.packages.${prev.system}.default;
         };
-        nixosModule = import ./module.nix;
+        nixosModules.default = import ./module.nix;
       };
 }
