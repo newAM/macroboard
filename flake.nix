@@ -60,11 +60,11 @@
             };
 
             apps.bindgen = {
-              program = pkgs.writeShellScript "libevdev-bindgen.sh" ''
+              program = "${pkgs.writeShellScript "libevdev-bindgen.sh" ''
                 ${pkgs.rust-bindgen}/bin/bindgen \
                   ${pkgs.libevdev}/include/libevdev-1.0/libevdev/libevdev.h \
                   -o src/bindings.rs
-              '';
+              ''}";
               type = "app";
             };
           }
