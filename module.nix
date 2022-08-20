@@ -41,6 +41,7 @@ in
         ATTRS{idProduct}=="${cfg.devicePid}", \
         TAG+="systemd", \
         ENV{SYSTEMD_ALIAS}+="/dev/macroboard", \
+        ENV{SYSTEMD_WANTS}+="macroboard.service", \
         GROUP="mbgroup", \
         MODE="0660"
     '';
