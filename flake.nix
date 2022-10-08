@@ -8,68 +8,72 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, crane, flake-utils }:
+  outputs = {
+    self,
+    nixpkgs,
+    crane,
+    flake-utils,
+  }:
     nixpkgs.lib.recursiveUpdate
-      (flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ]
-        (system:
-          let
-            pkgs = nixpkgs.legacyPackages.${system};
-            cargoToml = nixpkgs.lib.importTOML ./Cargo.toml;
-            craneLib = crane.lib.${system};
+    (flake-utils.lib.eachSystem ["x86_64-linux" "aarch64-linux"]
+      (
+        system: let
+          pkgs = nixpkgs.legacyPackages.${system};
+          cargoToml = nixpkgs.lib.importTOML ./Cargo.toml;
+          craneLib = crane.lib.${system};
 
-            commonArgs = {
-              src = ./.;
-              preBuild = ''
-                export LIBEVDEV_LIB_DIR=${pkgs.libevdev}/lib
-              '';
+          src = craneLib.cleanCargoSource ./.;
+          preBuild = "export LIBEVDEV_LIB_DIR=${pkgs.libevdev}/lib";
+
+          cargoArtifacts = craneLib.buildDepsOnly {
+            inherit src preBuild;
+          };
+
+          nixSrc = nixpkgs.lib.sources.sourceFilesBySuffices ./. [".nix"];
+        in {
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [self.packages.${system}.default];
+            shellHook = preBuild;
+          };
+
+          packages.default = craneLib.buildPackage {
+            inherit src preBuild cargoArtifacts;
+          };
+
+          checks = {
+            pkgs = self.packages.${system}.default;
+
+            clippy = craneLib.cargoClippy {
+              inherit src preBuild cargoArtifacts;
             };
 
-            cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-          in
-          rec {
-            devShells.default = pkgs.mkShell {
-              inputsFrom = [ packages.default ];
-              shellHook = commonArgs.preBuild;
-            };
+            rustfmt = craneLib.cargoFmt {inherit src;};
 
-            packages.default = craneLib.buildPackage (commonArgs // {
-              inherit cargoArtifacts;
-            });
+            alejandra = pkgs.runCommand "alejandra" {} ''
+              ${pkgs.alejandra}/bin/alejandra --check ${nixSrc}
+              touch $out
+            '';
 
-            checks = {
-              pkgs = packages.default;
+            statix = pkgs.runCommand "statix" {} ''
+              ${pkgs.statix}/bin/statix check ${nixSrc}
+              touch $out
+            '';
+          };
 
-              clippy = craneLib.cargoClippy (commonArgs // {
-                inherit cargoArtifacts;
-              });
-
-              rustfmt = craneLib.cargoFmt { src = ./.; };
-
-              nixpkgs-fmt = pkgs.runCommand "nixpkgs-fmt" { } ''
-                ${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
-                touch $out
-              '';
-
-              statix = pkgs.runCommand "statix" { } ''
-                ${pkgs.statix}/bin/statix check ${./.}
-                touch $out
-              '';
-            };
-
-            apps.bindgen = {
-              program = "${pkgs.writeShellScript "libevdev-bindgen.sh" ''
-                ${pkgs.rust-bindgen}/bin/bindgen \
-                  ${pkgs.libevdev}/include/libevdev-1.0/libevdev/libevdev.h \
-                  -o src/bindings.rs
-              ''}";
-              type = "app";
-            };
-          }
-        ))
-      {
-        overlays.default = final: prev: {
-          macroboard = self.packages.${prev.system}.default;
-        };
-        nixosModules.default = import ./module.nix;
+          apps.bindgen = {
+            program = "${pkgs.writeShellScript "libevdev-bindgen.sh" ''
+              ${pkgs.rust-bindgen}/bin/bindgen \
+                ${pkgs.libevdev}/include/libevdev-1.0/libevdev/libevdev.h \
+                -o src/bindings.rs
+            ''}";
+            type = "app";
+          };
+        }
+      ))
+    {
+      overlays.default = final: prev: {
+        macroboard = self.packages.${prev.system}.default;
       };
+      nixosModules.default = import ./module.nix;
+    };
 }

@@ -1,9 +1,11 @@
-{ config, lib, pkgs, ... }:
-
-let
-  cfg = config.services.macroboard;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.services.macroboard;
+in {
   options.services.macroboard = with lib; {
     enable = mkEnableOption "macro keyboard";
 
@@ -25,7 +27,7 @@ in
 
     # https://github.com/torvalds/linux/blob/34e047aa16c0123bbae8e2f6df33e5ecc1f56601/include/uapi/linux/input-event-codes.h#L75
     keys = mkOption {
-      default = { };
+      default = {};
       type = types.attrsOf types.str;
       description = "Maps key codes to programs.";
     };
@@ -33,7 +35,7 @@ in
 
   config = lib.mkIf cfg.enable {
     # cannot be called "macroboard" to avoid name clash with DynamicUser
-    users.groups.mbgroup = { };
+    users.groups.mbgroup = {};
 
     services.udev.extraRules = ''
       SUBSYSTEM=="input", \
@@ -46,68 +48,66 @@ in
         MODE="0660"
     '';
 
-    systemd.services.macroboard =
-      let
-        configFile = pkgs.writeText "macroboard-config.json" (builtins.toJSON {
-          inherit (cfg) keys;
-          dev = cfg.device;
-        });
-      in
-      {
-        wantedBy = [ "multi-user.target" ];
-        after = [ "dev-macroboard.device" ];
-        requires = [ "dev-macroboard.device" ];
-        description = "macro keyboard";
-        unitConfig.ReloadPropagatedFrom = "dev-macroboard.device";
-        serviceConfig = {
-          Type = "idle";
-          KillSignal = "SIGINT";
-          ExecStart = "${pkgs.macroboard}/bin/macroboard ${configFile}";
-          Restart = "on-failure";
-          RestartSec = 10;
+    systemd.services.macroboard = let
+      configFile = pkgs.writeText "macroboard-config.json" (builtins.toJSON {
+        inherit (cfg) keys;
+        dev = cfg.device;
+      });
+    in {
+      wantedBy = ["multi-user.target"];
+      after = ["dev-macroboard.device"];
+      requires = ["dev-macroboard.device"];
+      description = "macro keyboard";
+      unitConfig.ReloadPropagatedFrom = "dev-macroboard.device";
+      serviceConfig = {
+        Type = "idle";
+        KillSignal = "SIGINT";
+        ExecStart = "${pkgs.macroboard}/bin/macroboard ${configFile}";
+        Restart = "on-failure";
+        RestartSec = 10;
 
-          # hardening
-          SupplementaryGroups = [ "mbgroup" ];
-          DynamicUser = true;
-          DevicePolicy = "closed";
-          CapabilityBoundingSet = "";
-          RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
-          DeviceAllow = [
-            "char-usb_device rwm"
-            "${cfg.device} rwm"
-          ];
-          NoNewPrivileges = true;
-          PrivateDevices = true;
-          PrivateMounts = true;
-          PrivateTmp = true;
-          PrivateUsers = true;
-          ProtectClock = true;
-          ProtectControlGroups = true;
-          ProtectHome = true;
-          ProtectKernelLogs = true;
-          ProtectKernelModules = true;
-          ProtectKernelTunables = true;
-          ProtectSystem = "strict";
-          BindPaths = [ "${cfg.device}" ];
-          MemoryDenyWriteExecute = true;
-          LockPersonality = true;
-          RemoveIPC = true;
-          RestrictNamespaces = true;
-          RestrictRealtime = true;
-          RestrictSUIDSGID = true;
-          SystemCallArchitectures = "native";
-          SystemCallFilter = [
-            "~@debug"
-            "~@mount"
-            "~@privileged"
-            "~@resources"
-            "~@cpu-emulation"
-            "~@obsolete"
-          ];
-          ProtectProc = "invisible";
-          ProtectHostname = true;
-          ProcSubset = "pid";
-        };
+        # hardening
+        SupplementaryGroups = ["mbgroup"];
+        DynamicUser = true;
+        DevicePolicy = "closed";
+        CapabilityBoundingSet = "";
+        RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+        DeviceAllow = [
+          "char-usb_device rwm"
+          "${cfg.device} rwm"
+        ];
+        NoNewPrivileges = true;
+        PrivateDevices = true;
+        PrivateMounts = true;
+        PrivateTmp = true;
+        PrivateUsers = true;
+        ProtectClock = true;
+        ProtectControlGroups = true;
+        ProtectHome = true;
+        ProtectKernelLogs = true;
+        ProtectKernelModules = true;
+        ProtectKernelTunables = true;
+        ProtectSystem = "strict";
+        BindPaths = ["${cfg.device}"];
+        MemoryDenyWriteExecute = true;
+        LockPersonality = true;
+        RemoveIPC = true;
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        SystemCallArchitectures = "native";
+        SystemCallFilter = [
+          "~@debug"
+          "~@mount"
+          "~@privileged"
+          "~@resources"
+          "~@cpu-emulation"
+          "~@obsolete"
+        ];
+        ProtectProc = "invisible";
+        ProtectHostname = true;
+        ProcSubset = "pid";
       };
+    };
   };
 }
