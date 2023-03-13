@@ -77,7 +77,7 @@ impl Dev {
             value: 0,
         };
 
-        let rc: c_int = unsafe { libevdev_next_event(self.raw, flags.bits, &mut ie) };
+        let rc: c_int = unsafe { libevdev_next_event(self.raw, flags.bits(), &mut ie) };
 
         match rc {
             LIBEVDEV_READ_STATUS_SUCCESS => Ok(Some(ie)),
