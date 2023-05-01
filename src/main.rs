@@ -25,7 +25,9 @@ fn main() -> anyhow::Result<()> {
 
     let config: Config = Config::load(config_file_path).context("Failed to load configuration")?;
 
-    systemd_journal_logger::init().context("Failed to initialize logging")?;
+    systemd_journal_logger::JournalLog::default()
+        .install()
+        .context("Failed to initialize logging")?;
 
     log::set_max_level(log::LevelFilter::Trace);
 
