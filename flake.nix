@@ -5,7 +5,6 @@
 
     crane.url = "github:ipetkov/crane";
     crane.inputs.nixpkgs.follows = "nixpkgs";
-    crane.inputs.flake-utils.follows = "flake-utils";
   };
 
   outputs = {
@@ -19,7 +18,6 @@
       (
         system: let
           pkgs = nixpkgs.legacyPackages.${system};
-          cargoToml = nixpkgs.lib.importTOML ./Cargo.toml;
           craneLib = crane.lib.${system};
 
           src = craneLib.cleanCargoSource ./.;
