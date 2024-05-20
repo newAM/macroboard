@@ -18,7 +18,7 @@
       (
         system: let
           pkgs = nixpkgs.legacyPackages.${system};
-          craneLib = crane.lib.${system};
+          craneLib = crane.mkLib pkgs;
 
           src = craneLib.cleanCargoSource ./.;
           preBuild = "export LIBEVDEV_LIB_DIR=${pkgs.libevdev}/lib";
