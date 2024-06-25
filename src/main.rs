@@ -4,7 +4,11 @@ mod evdev;
 use crate::config::Config;
 use anyhow::Context;
 use evdev::ReadFlag;
-use std::{collections::HashMap, ffi::OsString, fs::File};
+use std::{
+    collections::{hash_map, HashMap},
+    ffi::OsString,
+    fs::File,
+};
 
 fn main() -> anyhow::Result<()> {
     ctrlc::set_handler(|| std::process::exit(0)).context("Failed to set SIGINT handler")?;
@@ -58,11 +62,11 @@ fn main() -> anyhow::Result<()> {
                 );
                 if event.value == 1 && event.type_ == 1 {
                     if let Some(cmd) = config.keys.get(&event.code) {
-                        if outstanding.get(&event.code).is_none() {
+                        if let hash_map::Entry::Vacant(e) = outstanding.entry(event.code) {
                             log::info!("Executing: {cmd}");
                             match std::process::Command::new(cmd).spawn() {
                                 Ok(child) => {
-                                    outstanding.insert(event.code, child);
+                                    e.insert(child);
                                 }
                                 Err(e) => log::error!("Failed to spawn '{cmd}': {e}"),
                             }

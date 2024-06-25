@@ -42,6 +42,7 @@
             pkgs = self.packages.${system}.default;
 
             clippy = craneLib.cargoClippy {
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
               inherit src preBuild cargoArtifacts;
             };
 
