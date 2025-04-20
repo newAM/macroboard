@@ -38,7 +38,7 @@ struct libevdev {
     _unused: [u8; 0],
 }
 
-extern "C" {
+unsafe extern "C" {
     fn libevdev_new_from_fd(fd: c_int, dev: *mut *mut libevdev) -> c_int;
     fn libevdev_free(dev: *mut libevdev);
     fn libevdev_get_id_vendor(dev: *const libevdev) -> c_int;

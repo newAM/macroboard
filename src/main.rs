@@ -5,7 +5,7 @@ use crate::config::Config;
 use anyhow::Context;
 use evdev::ReadFlag;
 use std::{
-    collections::{hash_map, HashMap},
+    collections::{HashMap, hash_map},
     ffi::OsString,
     fs::File,
 };
