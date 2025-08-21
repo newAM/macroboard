@@ -9,7 +9,6 @@ license = "MIT"
 [dependencies]
 anyhow = "1"
 bitflags = "2"
-ctrlc = "3"
 libc = "0.2"
 log = { version = "0.4", features = ["release_max_level_debug"] }
 serde = { version = "1", features = ["derive"] }

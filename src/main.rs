@@ -11,8 +11,6 @@ use std::{
 };
 
 fn main() -> anyhow::Result<()> {
-    ctrlc::set_handler(|| std::process::exit(0)).context("Failed to set SIGINT handler")?;
-
     let config_file_path: OsString = match std::env::args_os().nth(1) {
         Some(x) => x,
         None => {
