@@ -58,22 +58,23 @@ fn main() -> anyhow::Result<()> {
                     event.code,
                     event.value
                 );
-                if event.value == 1 && event.type_ == 1 {
-                    if let Some(cmd) = config.keys.get(&event.code) {
-                        if let hash_map::Entry::Vacant(e) = outstanding.entry(event.code) {
-                            log::info!("Executing: {cmd}");
-                            match std::process::Command::new(cmd).spawn() {
-                                Ok(child) => {
-                                    e.insert(child);
-                                }
-                                Err(e) => log::error!("Failed to spawn '{cmd}': {e}"),
+                if event.value == 1
+                    && event.type_ == 1
+                    && let Some(cmd) = config.keys.get(&event.code)
+                {
+                    if let hash_map::Entry::Vacant(e) = outstanding.entry(event.code) {
+                        log::info!("Executing: {cmd}");
+                        match std::process::Command::new(cmd).spawn() {
+                            Ok(child) => {
+                                e.insert(child);
                             }
-                        } else {
-                            log::warn!(
-                                "Ignoring reapeat key {}, command already in-progress",
-                                event.code
-                            );
+                            Err(e) => log::error!("Failed to spawn '{cmd}': {e}"),
                         }
+                    } else {
+                        log::warn!(
+                            "Ignoring reapeat key {}, command already in-progress",
+                            event.code
+                        );
                     }
                 }
             }
