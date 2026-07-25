@@ -18,6 +18,7 @@ pub struct ReadFlag: c_uint {
 }
 }
 
+#[allow(dead_code)] // only reachable through `main`, which is dead in test builds
 fn result<T>(value: T, rc: c_int) -> io::Result<T> {
     if rc != 0 {
         Err(io::Error::from_raw_os_error(-rc))
@@ -39,7 +40,9 @@ struct libevdev {
 }
 
 unsafe extern "C" {
+    #[allow(dead_code)] // only reachable through `main`, which is dead in test builds
     fn libevdev_new_from_fd(fd: c_int, dev: *mut *mut libevdev) -> c_int;
+    #[allow(dead_code)] // only reachable through `main`, which is dead in test builds
     fn libevdev_free(dev: *mut libevdev);
     fn libevdev_get_id_vendor(dev: *const libevdev) -> c_int;
     fn libevdev_get_id_product(dev: *const libevdev) -> c_int;
@@ -50,7 +53,7 @@ unsafe extern "C" {
 pub const LIBEVDEV_READ_STATUS_SUCCESS: c_int = 0;
 pub const LIBEVDEV_READ_STATUS_SYNC: c_int = 1;
 
-#[allow(dead_code)] // file never used
+#[allow(dead_code)] // only reachable through `main`, which is dead in test builds
 pub struct Dev {
     file: File,
     raw: *mut libevdev,
